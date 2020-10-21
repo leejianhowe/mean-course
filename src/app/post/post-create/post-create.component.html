@@ -1,0 +1,40 @@
+<!-- use [] to target the property of the underlying html obj -->
+<!-- use '' to read string value directly -->
+<!-- otherwise default refer to the property in the component in TS file -->
+<!-- create maker in element using #elementMarker -->
+<!-- ngModel is a directive to listen and emit data -->
+
+<mat-card>
+  <form (submit)="onAddPost(postForm)" #postForm="ngForm">
+    <mat-form-field>
+      <input
+        matInput
+        ngModel
+        required
+        minlength="2"
+        name="title"
+        placeholder="Title"
+        #title="ngModel"
+      />
+      <mat-error *ngIf="title.invalid">
+        Enter a Post Title of min length 2
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field>
+      <textarea
+        ngModel
+        #content="ngModel"
+        required
+        name="content"
+        matInput
+        placeholder="Content"
+        rows="6"
+      ></textarea>
+      <mat-error *ngIf="content.invalid">
+        Enter content for your post
+      </mat-error>
+    </mat-form-field>
+    <!-- add event listener to the button -->
+    <button type="submit" mat-raised-button color="primary">Post</button>
+  </form>
+</mat-card>

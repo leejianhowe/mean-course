@@ -1,0 +1,9 @@
+/* targets the element itself */
+:host {
+  /* elements need to be declared as display box */
+  display: block;
+  margin-top: 1rem;
+}
+.text-info {
+  text-align: center;
+}
