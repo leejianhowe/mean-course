@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
  * objectsd that help pass data around
  */
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 /**add JS object in the arguement @injectable*/
 /**angular will find it at the root level and
@@ -22,11 +23,8 @@ export class PostsService {
   private posts: Post[] = [];
   private postUpdated = new Subject<Post[]>();
 
-  constructor(private http: HttpClient) {}
-  /**retrieve posts from storage
-   * copies array to prevent editing original
-   * immutable array
-   */
+  constructor(private http: HttpClient, private router: Router) {}
+
   getPosts() {
     // client side only
     /**spread feature */
@@ -61,41 +59,68 @@ export class PostsService {
   getPostUpdatedListner() {
     return this.postUpdated.asObservable();
   }
+  getPost(id: string) {
+    return this.http.get<{
+      _id: string;
+      title: string;
+      content: string;
+      date: Date;
+    }>(`http://localhost:3000/api/posts/${id}`);
+  }
 
   /**add post to storage in posts array */
   addPosts(title: string, content: string) {
-    let date = new Date();
-    const post: Post = { id: null, title: title, content: content, date: date };
+    // let date = new Date();
+    const post: Post = { id: null, title: title, content: content, date: null };
     this.http
-      .post<{ message: string; postId: string }>(
+      .post<{ message: string; postId: string; date: Date }>(
         'http://localhost:3000/api/posts',
         post
       )
       .subscribe((responseData) => {
+        //Objects are reference types, overwriting one of the property
         const id = responseData.postId;
+        const date = responseData.date;
         post.id = id;
+        post.date = date;
         console.log(responseData.message);
         this.posts.push(post);
         this.postUpdated.next([...this.posts]);
+        this.router.navigate(['/']);
       });
   }
   deletePost(postId: string) {
     this.http
       .delete(`http://localhost:3000/api/posts/${postId}`)
       .subscribe(() => {
-        /**own testing purpose */
-        // let test = this.posts;
-
-        // for (let index = 0; index < test.length; index++) {
-        //   const element = test[index];
-        //   console.log(element.id);
-        // }
         /**.filter() returns a elements that matches the condition */
         const updatedPosts = this.posts.filter(function returnArray(post) {
           return post.id !== postId;
         });
         this.posts = updatedPosts;
         this.postUpdated.next([...this.posts]);
+      });
+  }
+  // title: string, content: string, date: Date
+  updatePost(id: string, title: string, content: string, date: Date) {
+    const post: Post = {
+      id: id,
+      title: title,
+      content: content,
+      date: date,
+    };
+
+    this.http
+      .put(`http://localhost:3000/api/posts/${id}`, post)
+      .subscribe((response) => {
+        const updatedPosts = [...this.posts];
+        const oldPostIndex = updatedPosts.findIndex(
+          (element) => post.id === element.id
+        );
+        updatedPosts[oldPostIndex] = post;
+        this.posts = updatedPosts;
+        this.postUpdated.next([...this.posts]);
+        this.router.navigate(['/']);
       });
   }
 }

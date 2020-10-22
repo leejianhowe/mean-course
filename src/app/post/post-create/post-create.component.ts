@@ -6,6 +6,7 @@ import { variable } from '@angular/compiler/src/output/output_ast';
 import { Component, OnInit } from '@angular/core';
 /** imports NgForms module */
 import { NgForm } from '@angular/forms';
+import { ActivatedRoute, ParamMap } from '@angular/router';
 
 import { Post } from '../post.model';
 import { PostsService } from '../post.service';
@@ -34,27 +35,57 @@ export class PostCreateComponent implements OnInit {
   enteredTitle = '';
   enteredContent = '';
   today = new Date();
+  private mode = 'create';
+  private postId: string;
+  post: Post;
+  isLoading = false;
   /**1. Add @Output decorator to emit the event to
    *    enable outside components to listen
    * 2. EventEmitter is generic type
    *    add <type of data> to be clear what data is emitted*/
 
-  constructor(public postsService: PostsService) {}
+  constructor(
+    public postsService: PostsService,
+    public route: ActivatedRoute
+  ) {}
 
-  onAddPost(form: NgForm) {
+  ngOnInit() {
+    this.route.paramMap.subscribe((paramMap: ParamMap) => {
+      if (paramMap.has('postId')) {
+        this.mode = 'edit';
+        this.postId = paramMap.get('postId');
+        this.isLoading = true;
+        this.postsService.getPost(this.postId).subscribe((postData) => {
+          this.post = {
+            id: postData._id,
+            title: postData.title,
+            content: postData.content,
+            date: postData.date,
+          };
+        });
+        this.isLoading = false;
+      } else {
+        this.mode = 'create';
+        this.postId = null;
+      }
+    });
+  }
+
+  onSavePost(form: NgForm) {
     if (form.invalid) {
       return;
     }
-    // const post: Post = {
-    //   id: 1,
-    //   title: form.value.title,
-    //   content: form.value.content,
-    //   date: this.today,
-    // };
-
-    this.postsService.addPosts(form.value.title, form.value.content);
-    form.resetForm();
+    this.isLoading = true;
+    if (this.mode === 'create') {
+      this.postsService.addPosts(form.value.title, form.value.content);
+      form.resetForm();
+    } else {
+      this.postsService.updatePost(
+        this.postId,
+        form.value.title,
+        form.value.content,
+        form.value.date
+      );
+    }
   }
-
-  ngOnInit(): void {}
 }

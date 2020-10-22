@@ -5,13 +5,14 @@
 <!-- ngModel is a directive to listen and emit data -->
 
 <mat-card>
-  <form (submit)="onAddPost(postForm)" #postForm="ngForm">
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+  <form (submit)="onSavePost(postForm)" #postForm="ngForm" *ngIf="!isLoading">
     <mat-form-field>
       <input
         matInput
-        ngModel
+        [ngModel]="post?.title"
         required
-        minlength="2"
+        minlength="1"
         name="title"
         placeholder="Title"
         #title="ngModel"
@@ -22,7 +23,7 @@
     </mat-form-field>
     <mat-form-field>
       <textarea
-        ngModel
+        [ngModel]="post?.content"
         #content="ngModel"
         required
         name="content"

@@ -9,25 +9,9 @@ import { PostsService } from '../post.service';
   styleUrls: ['./post-list.component.css'],
 })
 export class PostListComponent implements OnInit, OnDestroy {
-  // posts = [
-  //   {
-  //     title: 'first posts',
-  //     content: 'this is 1st post content',
-  //   },
-  //   {
-  //     title: 'second posts',
-  //     content: 'this is 2nd post content',
-  //   },
-  //   {
-  //     title: 'first posts',
-  //     content: 'this is 3rd post content',
-  //   },
-  // ];
-
-  /**use decorator @Input to bind the posts to outside */
   posts: Post[] = [];
   private postsSub: Subscription;
-
+  isLoading = false;
   /**create a service and add them to the components
    * eg post-create and post-list  */
   /**this feature is called dependency injection
@@ -42,10 +26,12 @@ export class PostListComponent implements OnInit, OnDestroy {
   constructor(public postsService: PostsService) {}
 
   ngOnInit() {
+    this.isLoading = true;
     this.postsService.getPosts();
     this.postsSub = this.postsService
       .getPostUpdatedListner()
       .subscribe((posts: Post[]) => {
+        this.isLoading = false;
         this.posts = posts;
       });
   }
